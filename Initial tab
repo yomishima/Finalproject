@@ -2,3 +2,34 @@
 dat <- read.csv("~/MEI HAN/PAI/Final projects/201501-citibike-tripdata/201501-citibike-tripdata.csv")
 ####For age information, please use the following formula
 dat$age <- 2016 - dat$birth.year
+nyc <- get_map( location='new york city, ny', zoom = 12, color="bw" )
+ggmap( nyc )
+nyc_points <- ggmap( nyc, extent="device" )
+
+nyc_points <- nyc_points + geom_point( data=dat, 
+                                       aes( x=start.station.longitude, y=start.station.latitude), 
+                                       color="red",
+                                       size=1 )
+
+nyc_points
+
+nyc_points <- ggmap( nyc, extent="panel" )
+
+nyc_points <- nyc_points + geom_point( data=dat, 
+                                       aes( x=start.station.longitude, y=start.station.latitude), 
+                                       color="red",
+                                       size=1 )
+
+nyc_points
+
+nyc_points <- ggmap( nyc, extent="normal" )
+
+nyc_points <- nyc_points + geom_point( data=dat, 
+                                       aes( x=start.station.longitude, y=start.station.latitude), 
+                                       color="red",
+                                       size=1 )
+
+nyc_points
+
+dat.startname <- group_by(dat, start.station.name)
+dat.start.end <- group_by(dat.startname, end.station.name)
