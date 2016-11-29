@@ -33,3 +33,4 @@ nyc_points
 
 dat.startname <- group_by(dat, start.station.name)
 dat.start.end <- group_by(dat.startname, end.station.name)
+dat.start.end$start.end <- paste(dat.start.end$start.station.name, dat.start.end$end.station.name)
