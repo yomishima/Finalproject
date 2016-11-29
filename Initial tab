@@ -1,0 +1,4 @@
+####Please use dat as the original data's name
+dat <- read.csv("~/MEI HAN/PAI/Final projects/201501-citibike-tripdata/201501-citibike-tripdata.csv")
+####For age information, please use the following formula
+dat$age <- 2016 - dat$birth.year
