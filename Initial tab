@@ -2,36 +2,59 @@
 dat <- read.csv("~/MEI HAN/PAI/Final projects/201501-citibike-tripdata/201501-citibike-tripdata.csv")
 ####For age information, please use the following formula
 dat$age <- 2016 - dat$birth.year
-nyc <- get_map( location='new york city, ny', zoom = 12, color="bw" )
-ggmap( nyc )
-nyc_points <- ggmap( nyc, extent="device" )
-
-nyc_points <- nyc_points + geom_point( data=dat, 
-                                       aes( x=start.station.longitude, y=start.station.latitude), 
-                                       color="red",
-                                       size=1 )
-
-nyc_points
-
-nyc_points <- ggmap( nyc, extent="panel" )
-
-nyc_points <- nyc_points + geom_point( data=dat, 
-                                       aes( x=start.station.longitude, y=start.station.latitude), 
-                                       color="red",
-                                       size=1 )
-
-nyc_points
-
-nyc_points <- ggmap( nyc, extent="normal" )
-
-nyc_points <- nyc_points + geom_point( data=dat, 
-                                       aes( x=start.station.longitude, y=start.station.latitude), 
-                                       color="red",
-                                       size=1 )
-
-nyc_points
 
 dat.startname <- group_by(dat, start.station.name)
 dat.start.end <- group_by(dat.startname, end.station.name)
 dat.start.end$start.end <- paste(dat.start.end$start.station.name, dat.start.end$end.station.name)
 frequencytable <- data.frame(table(dat.start.end$start.station.name, dat.start.end$end.station.name))
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library( ggmap)
+library("dplyr")
+library(data.table)
+library("shiny")
+library(leaflet)
+dat <- read.csv("~/MEI HAN/PAI/Final projects/201501-citibike-tripdata/201501-citibike-tripdata.csv")
+dat$age <- 2016 - dat$birth.year
+```
+
+
+```{r}
+
+frequencytable <- data.frame(table(dat$start.station.name, dat$end.station.name))
+colnames(frequencytable) <- c("start.station.name", "end.station.name", "frequency")
+end.station <- unique(data.frame (dat$end.station.name,dat$end.station.latitude,dat$end.station.longitude))
+start.station <- unique(data.frame(dat$start.station.name, dat$start.station.latitude,dat$start.station.longitude))
+dat.map.start <- merge(frequencytable, start.station , by.x = c("start.station.name"), by.y = c("dat.start.station.name"), all.x = T )
+dat.map <- merge(dat.map.start, end.station , by.x = c("end.station.name"), by.y = c("dat.end.station.name"), all.x = T )
+colnames(dat.map) <- c("start.station.name", "end.station.name", "frequency","start.station.latitude", "start.station.longitude", "end.station.latitude","end.station.longitude")
+dat.map.rank <- data.table(dat.map, key = 'start.station.name')
+dat.map.group <- transform(dat.map.rank, Rank = ave (frequency, start.station.name, FUN = function(x) + rank (-x, ties.method ="min")))
+dat.map.ten <- dat.map.group[dat.map.group$Rank <= 10, ]
+
+
+```
+
+```{r shiny, echo = F}
+nyc <- get_map( location='new york city, ny', zoom = 12, color="bw" )
+ui<- fluidPage(
+  selectInput( 
+             inputId= 'StartStation', 
+             label='Select Start Station',
+             choices = unique(dat.map.ten$start.station.name),
+             selected = "1 Ave & E 15 St"
+           ))
+
+server <- function(input, output) {
+
+  nyc <- get_map( location='new york city, ny', zoom = 13, color="bw" )  
+  ggmap( nyc)
+  start_point <- ggmap(nyc, extent= "device") 
+  start_point <- start_point + geom_point( data=dat.map.ten[dat.map.ten$start.station.name== "1 Ave & E 15 St"], 
+                                       aes( x=start.station.longitude, y=start.station.latitude), 
+                                       color="red",
+                                       size=5)
+  start_point
+  }
+  shinyApp(ui, server)
+ ###[dat.map.ten$start.station.name== input$StartStation]
