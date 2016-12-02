@@ -37,24 +37,25 @@ dat.map.ten <- dat.map.group[dat.map.group$Rank <= 10, ]
 
 ```{r shiny, echo = F}
 nyc <- get_map( location='new york city, ny', zoom = 12, color="bw" )
-ui<- fluidPage(
-  selectInput( 
+selectInput( 
              inputId= 'StartStation', 
              label='Select Start Station',
              choices = unique(dat.map.ten$start.station.name),
              selected = "1 Ave & E 15 St"
-           ))
+           )
 
-server <- function(input, output) {
-
-  nyc <- get_map( location='new york city, ny', zoom = 13, color="bw" )  
-  ggmap( nyc)
+renderPlot({
+  nyc <- get_map( location='new york city, ny', zoom = 13, color="bw" ) 
+  ggmap(nyc)
   start_point <- ggmap(nyc, extent= "device") 
-  start_point <- start_point + geom_point( data=dat.map.ten[dat.map.ten$start.station.name== "1 Ave & E 15 St"], 
+  start_point <- start_point + geom_point( data=dat.map.ten[dat.map.ten$start.station.name== input$StartStation], 
                                        aes( x=start.station.longitude, y=start.station.latitude), 
-                                       color="red",
-                                       size=5)
-  start_point
-  }
-  shinyApp(ui, server)
- ###[dat.map.ten$start.station.name== input$StartStation]
+                                       color="black",
+                                       size=3)
+start_point
+ end_point <- start_point + geom_point( data=dat.map.ten[dat.map.ten$start.station.name== input$StartStation], 
+                                       aes( x=end.station.longitude, y=end.station.latitude), 
+                                       color="blue",
+                                       size=3)
+ end_point 
+geom_path(aes(x = start.station.longitude, y = start.station.latitude, xend = end.station.longitude, yend = yend.station.latitude, colour = "curve"), data = dat.map.ten[dat.map.ten$start.station.name== input$StartStation])
